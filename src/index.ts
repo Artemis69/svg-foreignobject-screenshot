@@ -33,11 +33,16 @@ const getResourceAsBase64 = async (
   url: string
   base64: string
 }> => {
+  url = descape(url)
+
   try {
-    const res = await fetch('https://images.weserv.nl/?url=' + descape(url), {
-      mode: 'cors',
-      credentials: 'omit',
-    })
+    const res = await fetch(
+      url.startsWith('http') ? 'https://images.weserv.nl/?url=' + url : url,
+      {
+        mode: 'cors',
+        credentials: 'omit',
+      }
+    )
 
     const blob = await res.blob()
 

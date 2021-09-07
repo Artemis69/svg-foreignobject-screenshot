@@ -46,4 +46,4 @@ in that example we capture document.body and then download it as png file
 
 ## Thanks
 
-Thanks to (Images.weserv.nl)[https://images.weserv.nl/] for proxing images.
+Thanks to [Images.weserv.nl](https://images.weserv.nl/) for proxing images.
