@@ -1,3 +1,10 @@
+import {
+  descape,
+  getImageUrlsFromFromHtml,
+  getUrlsFromCssString,
+  removeQuotes,
+} from './lib'
+
 const serialize = (node: Node) => new XMLSerializer().serializeToString(node)
 
 const base64encode = (str: string): string => {
@@ -16,32 +23,19 @@ const binaryStringToBase64 = (binaryString: Blob): Promise<string> => {
   })
 }
 
-const escaped: { [key: string]: string } = {
-  '&quot;': '"',
-  '&#39;': "'",
-  '&amp;': '&',
-  '&lt;': '<',
-  '&gt;': '>',
-}
-
-export const descape = (string: string) =>
-  string.replace(/&(quot|#39|amp|lt|gt);/g, match => escaped[match])
-
 const getResourceAsBase64 = async (
   url: string
 ): Promise<{
   url: string
   base64: string
 }> => {
-  url = descape(url)
-
   try {
     const res = await fetch(
-      url.startsWith('http') ? 'https://images.weserv.nl/?url=' + url : url,
-      {
-        mode: 'cors',
-        credentials: 'omit',
-      }
+      url.startsWith('http://') ||
+        url.startsWith('https://') ||
+        url.startsWith('//')
+        ? 'https://images.weserv.nl/?url=' + encodeURIComponent(descape(url))
+        : descape(url)
     )
 
     const blob = await res.blob()
@@ -69,28 +63,6 @@ const getMultipleResourcesAsBase64 = (
   }
   return Promise.all(promises)
 }
-
-export const getImageUrlsFromFromHtml = (html: string): string[] => {
-  const urls = Array.from(
-    html.matchAll(/<(?:img|image).*?(?:href|src)=(["|'])(.*?)(\1)/gm)
-  )
-    .map(match => match[2])
-    .filter(
-      url => !url.startsWith('data:') && !url.startsWith('#') && url !== ''
-    )
-  return urls
-}
-
-export const getUrlsFromCssString = (cssRuleString: string): string[] => {
-  const urls = Array.from(cssRuleString.matchAll(/url\((.*?)\)/gi))
-    .map(match => removeQuotes(match[1]))
-    .filter(url => !url.startsWith('data:') && url !== '')
-
-  return urls
-}
-
-export const removeQuotes = (str: string) =>
-  str.replace(/^("|').*?(\1)$/gm, match => match.slice(1, -1))
 
 export const buildSvgDataURI = async (
   contentHtml: string,

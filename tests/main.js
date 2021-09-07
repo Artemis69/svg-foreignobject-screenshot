@@ -5,7 +5,7 @@ import {
   getImageUrlsFromFromHtml,
   getUrlsFromCssString,
   descape,
-} from '../dist/index.js'
+} from '../dist/lib.js'
 
 test('removeQuotes', () => {
   assert.is(removeQuotes(`'""'`), `""`)
