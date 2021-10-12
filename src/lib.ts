@@ -30,3 +30,12 @@ const escaped: { [key: string]: string } = {
 
 export const descape = (string: string) =>
   string.replace(/&(quot|#39|amp|lt|gt);/g, match => escaped[match])
+
+/**
+ * Because of CORS fetch cannot get some resources. For that we need to use a proxy service or something like cors-anywhere.
+ * Since I could not find the equivalent of cors-anywhere, we can only use the image proxy, which is free Images.weserv.nl
+ *
+ * Why are only some image types supported? See supported file types: https://images.weserv.nl/faq/#which-file-extensions-do-you-support
+ */
+export const shouldProxy = (url: string) =>
+  /^(https?:\/\/|\/\/)(.*?)\.(jpeg|png|gif|tiff|webp|svg|avif)$/im.test(url)

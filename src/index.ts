@@ -3,7 +3,10 @@ import {
   getImageUrlsFromFromHtml,
   getUrlsFromCssString,
   removeQuotes,
+  shouldProxy,
 } from './lib'
+
+const createElement = document.createElement
 
 const serialize = (node: Node) => new XMLSerializer().serializeToString(node)
 
@@ -31,9 +34,7 @@ const getResourceAsBase64 = async (
 }> => {
   try {
     const res = await fetch(
-      url.startsWith('http://') ||
-        url.startsWith('https://') ||
-        url.startsWith('//')
+      shouldProxy(url)
         ? 'https://images.weserv.nl/?url=' + encodeURIComponent(descape(url))
         : descape(url)
     )
@@ -99,10 +100,10 @@ export const buildSvgDataURI = async (
     contentHtml = contentHtml.replaceAll(resource.url, resource.base64)
   }
 
-  const styleElem = document.createElement('style')
+  const styleElem = createElement('style')
   styleElem.innerHTML = cssStyles
 
-  const contentRootElem = document.createElement('div')
+  const contentRootElem = createElement('div')
   contentRootElem.innerHTML = serialize(styleElem) + contentHtml
   contentRootElem.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml')
 
@@ -117,29 +118,25 @@ export const buildSvgDataURI = async (
 
 export const renderToImage = (dataURI: string): Promise<HTMLImageElement> => {
   return new Promise(resolve => {
-    const img = document.createElement('img')
+    const img = createElement('img')
 
     img.src = dataURI
 
-    img.addEventListener('load', () => resolve(img))
+    img.onload = () => resolve(img)
   })
 }
 
 export const renderToCanvas = async (
   dataURI: string
-): Promise<HTMLCanvasElement | undefined> => {
+): Promise<HTMLCanvasElement> => {
   const img = await renderToImage(dataURI)
 
-  const canvas = document.createElement('canvas')
+  const canvas = createElement('canvas')
 
   canvas.width = img.width
   canvas.height = img.height
 
-  const ctx = canvas.getContext('2d')
-
-  if (!ctx) {
-    return
-  }
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
 
   ctx.drawImage(img, 0, 0, img.width, img.height)
 
@@ -149,5 +146,5 @@ export const renderToCanvas = async (
 export const renderToBase64Png = async (dataURI: string): Promise<string> => {
   const canvas = await renderToCanvas(dataURI)
 
-  return canvas?.toDataURL('image/png') || ''
+  return canvas.toDataURL('image/png')
 }

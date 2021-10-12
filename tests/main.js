@@ -5,6 +5,7 @@ import {
   getImageUrlsFromFromHtml,
   getUrlsFromCssString,
   descape,
+  shouldProxy,
 } from '../dist/lib.js'
 
 test('removeQuotes', () => {
@@ -15,83 +16,81 @@ test('removeQuotes', () => {
 })
 
 test('getImageUrlsFromFromHtml', () => {
-  assert.is(
-    getImageUrlsFromFromHtml(`<img src="https://example.com/first.jpg"/>`)[0],
-    'https://example.com/first.jpg'
+  assert.equal(
+    getImageUrlsFromFromHtml(`<img src="https://example.com/first.jpg"/>`),
+    ['https://example.com/first.jpg']
   )
-  assert.is(
+  assert.equal(
     getImageUrlsFromFromHtml(
       `<img class="max-h-10" src="https://example.com/second.jpg" alt="Sunny Cactus"/>`
-    )[0],
-    'https://example.com/second.jpg'
+    ),
+    ['https://example.com/second.jpg']
   )
-  assert.is(
+
+  assert.equal(
     getImageUrlsFromFromHtml(
       `<img data-src="https://cactus-shop.com/cactus.webp" src="" alt="cactus" />`
-    )[0],
-    'https://cactus-shop.com/cactus.webp'
+    ),
+    ['https://cactus-shop.com/cactus.webp']
   )
-  assert.is(
+
+  assert.equal(
     getImageUrlsFromFromHtml(`
       <svg>
         <image xlink:href="https://example.com/buldge.jpg" />
       </svg>
-  `)[0],
-    'https://example.com/buldge.jpg'
+    `),
+    ['https://example.com/buldge.jpg']
   )
-  assert.is(
+
+  assert.equal(
     getImageUrlsFromFromHtml(`
       <svg>
         <image href="https://example.com/concave.jpg" />
       </svg>
-  `)[0],
-    'https://example.com/concave.jpg'
+    `),
+    ['https://example.com/concave.jpg']
   )
-  assert.is(
-    getImageUrlsFromFromHtml(`<img src="data:image/svg+xml,..." />`).length,
-    0
+
+  assert.equal(
+    getImageUrlsFromFromHtml(`<img src="data:image/svg+xml,..." />`),
+    []
   )
-  assert.is(
+  assert.equal(
     getImageUrlsFromFromHtml(`
-    <svg>
-      <image href="#cute-face" />
-    </svg>
-  `).length,
-    0
+      <svg>
+        <image href="#cute-face" />
+      </svg>
+    `),
+    []
   )
-  assert.is(
+  assert.equal(
     getImageUrlsFromFromHtml(
       `<a href="https://artemiys-toolbox.pages.dev/">Do not click me</a>`
-    ).length,
-    0
+    ),
+    []
   )
 })
 
 test('getUrlsFromCssString', () => {
-  assert.is(
-    getUrlsFromCssString(`background: url('data:image/svg+xml,')`).length,
-    0
+  assert.equal(
+    getUrlsFromCssString(`background: url('data:image/svg+xml,')`),
+    []
   )
-  assert.is(
-    getUrlsFromCssString(`background: url("data:image/svg+xml,")`).length,
-    0
+  assert.equal(
+    getUrlsFromCssString(`background: url("data:image/svg+xml,")`),
+    []
   )
-  assert.is(
-    getUrlsFromCssString(`background: url(data:image/svg+xml,)`).length,
-    0
-  )
-  assert.is(
-    getUrlsFromCssString(`background: url('./grape.jpg')`)[0],
-    `./grape.jpg`
-  )
-  assert.is(
-    getUrlsFromCssString(`background: url("./grape.jpg")`)[0],
-    `./grape.jpg`
-  )
-  assert.is(
-    getUrlsFromCssString(`background: url(./grape.jpg)`)[0],
-    `./grape.jpg`
-  )
+  assert.equal(getUrlsFromCssString(`background: url(data:image/svg+xml,)`), [])
+  assert.equal(getUrlsFromCssString(`background: url('./grape.jpg')`), [
+    './grape.jpg',
+  ])
+  assert.equal(getUrlsFromCssString(`background: url("./grape.jpg")`), [
+    './grape.jpg',
+  ])
+  assert.equal(getUrlsFromCssString(`background: url(./grape.jpg)`), [
+    './grape.jpg',
+  ])
 })
 
 test('descape', () => {
@@ -100,6 +99,36 @@ test('descape', () => {
   assert.is(descape('&amp;'), '&')
   assert.is(descape('&lt;'), '<')
   assert.is(descape('&gt;'), '>')
+})
+
+test('shouldProxy', () => {
+  assert.is(shouldProxy('//proxy-me.pls/image.jpeg'), true)
+  assert.is(shouldProxy('//proxy-me.pls/image.png'), true)
+  assert.is(shouldProxy('//proxy-me.pls/image.gif'), true)
+  assert.is(shouldProxy('//proxy-me.pls/image.tiff'), true)
+  assert.is(shouldProxy('//proxy-me.pls/image.webp'), true)
+  assert.is(shouldProxy('//proxy-me.pls/image.svg'), true)
+  assert.is(shouldProxy('//proxy-me.pls/image.avif'), true)
+
+  assert.is(shouldProxy('http://proxy-me.pls/image.jpeg'), true)
+  assert.is(shouldProxy('http://proxy-me.pls/image.png'), true)
+  assert.is(shouldProxy('http://proxy-me.pls/image.gif'), true)
+  assert.is(shouldProxy('http://proxy-me.pls/image.tiff'), true)
+  assert.is(shouldProxy('http://proxy-me.pls/image.webp'), true)
+  assert.is(shouldProxy('http://proxy-me.pls/image.svg'), true)
+  assert.is(shouldProxy('http://proxy-me.pls/image.avif'), true)
+
+  assert.is(shouldProxy('https://proxy-me.pls/image.jpeg'), true)
+  assert.is(shouldProxy('https://proxy-me.pls/image.png'), true)
+  assert.is(shouldProxy('https://proxy-me.pls/image.gif'), true)
+  assert.is(shouldProxy('https://proxy-me.pls/image.tiff'), true)
+  assert.is(shouldProxy('https://proxy-me.pls/image.webp'), true)
+  assert.is(shouldProxy('https://proxy-me.pls/image.svg'), true)
+  assert.is(shouldProxy('https://proxy-me.pls/image.avif'), true)
+
+  assert.is(shouldProxy('https://do-not-proxy-me.pls/horny.woff2'), false)
+  assert.is(shouldProxy('https://do-not-proxy-me.pls/horny.woff'), false)
+  assert.is(shouldProxy('https://do-not-proxy-me.pls/horny.ttf'), false)
 })
 
 test.run()
