@@ -1,3 +1,6 @@
+export const descape = (string: string) =>
+  string.replace(/&(quot|#39|amp|lt|gt);/g, match => escaped[match])
+
 export const getImageUrlsFromFromHtml = (html: string): string[] => {
   const urls = Array.from(
     html.matchAll(/<(?:img|image).*?(?:href|src)=(["|'])(.*?)(\1)/gm)
@@ -11,7 +14,7 @@ export const getImageUrlsFromFromHtml = (html: string): string[] => {
 
 export const getUrlsFromCssString = (cssRuleString: string): string[] => {
   const urls = Array.from(cssRuleString.matchAll(/url\((.*?)\)/gi))
-    .map(match => removeQuotes(match[1]))
+    .map(match => removeQuotes(descape(match[1])))
     .filter(url => !url.startsWith('data:') && url !== '')
 
   return urls
@@ -27,9 +30,6 @@ const escaped: { [key: string]: string } = {
   '&lt;': '<',
   '&gt;': '>',
 }
-
-export const descape = (string: string) =>
-  string.replace(/&(quot|#39|amp|lt|gt);/g, match => escaped[match])
 
 /**
  * Because of CORS fetch cannot get some resources. For that we need to use a proxy service or something like cors-anywhere.

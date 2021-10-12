@@ -74,7 +74,7 @@ export const buildSvgDataURI = async (
   height: number
 ): Promise<string> => {
   let cssStyles = ''
-  let urlsFoundInCss = []
+  let urlsFoundInCss: string[] = []
 
   const styleSheets = Array.from(document.styleSheets).filter(
     styleSheet =>
@@ -94,6 +94,16 @@ export const buildSvgDataURI = async (
 
   for (const resource of fetchedResourcesFromStylesheets) {
     cssStyles = cssStyles.replaceAll(resource.url, resource.base64)
+  }
+
+  const urlsFoundInHtml = getUrlsFromCssString(contentHtml)
+
+  const fetchedResourcesFromHtml = await getMultipleResourcesAsBase64(
+    urlsFoundInHtml
+  )
+
+  for (const resource of fetchedResourcesFromHtml) {
+    contentHtml = contentHtml.replaceAll(resource.url, resource.base64)
   }
 
   const fetchedResources = await getMultipleResourcesAsBase64(
