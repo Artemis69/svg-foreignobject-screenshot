@@ -6,7 +6,10 @@ import {
   shouldProxy,
 } from './lib'
 
-const createElement = document.createElement
+const createElement = <K extends keyof HTMLElementTagNameMap>(
+  tagName: K,
+  options?: ElementCreationOptions
+): HTMLElementTagNameMap[K] => document.createElement(tagName, options)
 
 const serialize = (node: Node) => new XMLSerializer().serializeToString(node)
 
