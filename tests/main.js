@@ -102,6 +102,7 @@ test('descape', () => {
 })
 
 test('shouldProxy', () => {
+  assert.is(shouldProxy('//proxy-me.pls/image.jpg'), true)
   assert.is(shouldProxy('//proxy-me.pls/image.jpeg'), true)
   assert.is(shouldProxy('//proxy-me.pls/image.png'), true)
   assert.is(shouldProxy('//proxy-me.pls/image.gif'), true)
@@ -110,6 +111,7 @@ test('shouldProxy', () => {
   assert.is(shouldProxy('//proxy-me.pls/image.svg'), true)
   assert.is(shouldProxy('//proxy-me.pls/image.avif'), true)
 
+  assert.is(shouldProxy('http://proxy-me.pls/image.jpg'), true)
   assert.is(shouldProxy('http://proxy-me.pls/image.jpeg'), true)
   assert.is(shouldProxy('http://proxy-me.pls/image.png'), true)
   assert.is(shouldProxy('http://proxy-me.pls/image.gif'), true)
@@ -118,6 +120,7 @@ test('shouldProxy', () => {
   assert.is(shouldProxy('http://proxy-me.pls/image.svg'), true)
   assert.is(shouldProxy('http://proxy-me.pls/image.avif'), true)
 
+  assert.is(shouldProxy('https://proxy-me.pls/image.jpg'), true)
   assert.is(shouldProxy('https://proxy-me.pls/image.jpeg'), true)
   assert.is(shouldProxy('https://proxy-me.pls/image.png'), true)
   assert.is(shouldProxy('https://proxy-me.pls/image.gif'), true)

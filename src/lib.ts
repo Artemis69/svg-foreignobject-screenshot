@@ -38,4 +38,4 @@ const escaped: { [key: string]: string } = {
  * Why are only some image types supported? See supported file types: https://images.weserv.nl/faq/#which-file-extensions-do-you-support
  */
 export const shouldProxy = (url: string) =>
-  /^(https?:\/\/|\/\/)(.*?)\.(jpeg|png|gif|tiff|webp|svg|avif)$/im.test(url)
+  /^(https?:\/\/|\/\/)(.*?)\.(jpg|jpeg|png|gif|tiff|webp|svg|avif)$/im.test(url)
