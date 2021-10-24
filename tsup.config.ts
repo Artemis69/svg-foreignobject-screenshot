@@ -5,6 +5,6 @@ export const tsup: Options = {
   clean: true,
   entryPoints: ['src/index.ts', 'src/lib.ts'],
   target: 'node14',
-  format: ['esm', 'cjs'],
+  format: ['esm'],
   dts: true,
 }
