@@ -4,7 +4,7 @@ export const tsup: Options = {
   sourcemap: false,
   clean: true,
   entryPoints: ['src/index.ts', 'src/lib.ts'],
-  target: 'node16',
+  target: 'node14',
   format: ['esm', 'cjs'],
   dts: true,
 }
