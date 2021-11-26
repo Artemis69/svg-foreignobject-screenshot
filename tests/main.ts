@@ -6,7 +6,7 @@ import {
   getUrlsFromCssString,
   descape,
   shouldProxy,
-} from '../dist/lib.js'
+} from '../src/lib'
 
 test('removeQuotes', () => {
   assert.is(removeQuotes(`'""'`), `""`)
