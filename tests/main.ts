@@ -2,7 +2,7 @@ import { test } from 'uvu'
 import * as assert from 'uvu/assert'
 import {
   removeQuotes,
-  getImageUrlsFromFromHtml,
+  getImageUrlsFromHtml,
   getUrlsFromCssString,
   descape,
   shouldProxy,
@@ -15,27 +15,27 @@ test('removeQuotes', () => {
   assert.is(removeQuotes(`''''`), `''`)
 })
 
-test('getImageUrlsFromFromHtml', () => {
+test('getImageUrlsFromHtml', () => {
   assert.equal(
-    getImageUrlsFromFromHtml(`<img src="https://example.com/first.jpg"/>`),
+    getImageUrlsFromHtml(`<img src="https://example.com/first.jpg"/>`),
     ['https://example.com/first.jpg']
   )
   assert.equal(
-    getImageUrlsFromFromHtml(
+    getImageUrlsFromHtml(
       `<img class="max-h-10" src="https://example.com/second.jpg" alt="Sunny Cactus"/>`
     ),
     ['https://example.com/second.jpg']
   )
 
   assert.equal(
-    getImageUrlsFromFromHtml(
+    getImageUrlsFromHtml(
       `<img data-src="https://cactus-shop.com/cactus.webp" src="" alt="cactus" />`
     ),
     ['https://cactus-shop.com/cactus.webp']
   )
 
   assert.equal(
-    getImageUrlsFromFromHtml(`
+    getImageUrlsFromHtml(`
       <svg>
         <image xlink:href="https://example.com/buldge.jpg" />
       </svg>
@@ -44,7 +44,7 @@ test('getImageUrlsFromFromHtml', () => {
   )
 
   assert.equal(
-    getImageUrlsFromFromHtml(`
+    getImageUrlsFromHtml(`
       <svg>
         <image href="https://example.com/concave.jpg" />
       </svg>
@@ -53,11 +53,11 @@ test('getImageUrlsFromFromHtml', () => {
   )
 
   assert.equal(
-    getImageUrlsFromFromHtml(`<img src="data:image/svg+xml,..." />`),
+    getImageUrlsFromHtml(`<img src="data:image/svg+xml,..." />`),
     []
   )
   assert.equal(
-    getImageUrlsFromFromHtml(`
+    getImageUrlsFromHtml(`
       <svg>
         <image href="#cute-face" />
       </svg>
@@ -65,7 +65,7 @@ test('getImageUrlsFromFromHtml', () => {
     []
   )
   assert.equal(
-    getImageUrlsFromFromHtml(
+    getImageUrlsFromHtml(
       `<a href="https://artemiys-toolbox.pages.dev/">Do not click me</a>`
     ),
     []

@@ -1,7 +1,7 @@
 export const descape = (string: string) =>
   string.replace(/&(quot|#39|amp|lt|gt);/g, match => escaped[match])
 
-export const getImageUrlsFromFromHtml = (html: string): string[] => {
+export const getImageUrlsFromHtml = (html: string): string[] => {
   const urls = Array.from(
     html.matchAll(/<(?:img|image).*?(?:href|src)=(["|'])(.*?)(\1)/gm)
   )

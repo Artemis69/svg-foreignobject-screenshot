@@ -1,8 +1,7 @@
 import {
   descape,
-  getImageUrlsFromFromHtml,
+  getImageUrlsFromHtml,
   getUrlsFromCssString,
-  removeQuotes,
   shouldProxy,
 } from './lib'
 
@@ -107,7 +106,7 @@ export const buildSvgDataURI = async (
   }
 
   const fetchedResources = await getMultipleResourcesAsBase64(
-    getImageUrlsFromFromHtml(contentHtml)
+    getImageUrlsFromHtml(contentHtml)
   )
   for (const resource of fetchedResources) {
     contentHtml = contentHtml.replaceAll(resource.url, resource.base64)
