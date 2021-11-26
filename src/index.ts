@@ -6,9 +6,8 @@ import {
 } from './lib'
 
 const createElement = <K extends keyof HTMLElementTagNameMap>(
-  tagName: K,
-  options?: ElementCreationOptions
-): HTMLElementTagNameMap[K] => document.createElement(tagName, options)
+  tagName: K
+): HTMLElementTagNameMap[K] => document.createElement(tagName)
 
 const serialize = (node: Node) => new XMLSerializer().serializeToString(node)
 
@@ -28,38 +27,40 @@ const binaryStringToBase64 = (binaryString: Blob): Promise<string> => {
   })
 }
 
-const getResourceAsBase64 = async (
-  url: string
-): Promise<{
-  url: string
-  base64: string
-}> => {
+const getResourceAsBase64 = async (url: string): Promise<[string, string]> => {
   try {
+    const isProxied = shouldProxy(url)
+
     const res = await fetch(
-      shouldProxy(url)
-        ? 'https://images.weserv.nl/?url=' + encodeURIComponent(descape(url))
+      isProxied
+        ? 'https://images.weserv.nl/?encoding=base64&output=jpg&url=' +
+            encodeURIComponent(descape(url))
         : descape(url)
     )
+
+    /**
+     * https://images.weserv.nl/docs/format.html#base64-data-url
+     * images.weserv.nl has an option to encode the image data as base64
+     * which is much faster than converting it to base64 on the client side
+     */
+    if (isProxied) {
+      const text = await res.text()
+      return [url, text.startsWith('data:image') ? text : '']
+    }
 
     const blob = await res.blob()
 
     const base64encoded = (await binaryStringToBase64(blob)) || ''
 
-    return {
-      url,
-      base64: base64encoded,
-    }
+    return [url, base64encoded]
   } catch {
-    return {
-      url,
-      base64: '', // just ignore image
-    }
+    return [url, '']
   }
 }
 
 const getMultipleResourcesAsBase64 = (
   urls: string[]
-): Promise<Array<{ url: string; base64: string }>> => {
+): Promise<Array<[string, string]>> => {
   const promises = []
   for (const url of urls) {
     promises.push(getResourceAsBase64(url))
@@ -92,7 +93,7 @@ export const buildSvgDataURI = async (
   )
 
   for (const resource of fetchedResourcesFromStylesheets) {
-    cssStyles = cssStyles.replaceAll(resource.url, resource.base64)
+    cssStyles = cssStyles.replaceAll(resource[0], resource[1])
   }
 
   const urlsFoundInHtml = getUrlsFromCssString(contentHtml)
@@ -102,14 +103,14 @@ export const buildSvgDataURI = async (
   )
 
   for (const resource of fetchedResourcesFromHtml) {
-    contentHtml = contentHtml.replaceAll(resource.url, resource.base64)
+    contentHtml = contentHtml.replaceAll(resource[0], resource[1])
   }
 
   const fetchedResources = await getMultipleResourcesAsBase64(
     getImageUrlsFromHtml(contentHtml)
   )
   for (const resource of fetchedResources) {
-    contentHtml = contentHtml.replaceAll(resource.url, resource.base64)
+    contentHtml = contentHtml.replaceAll(resource[0], resource[1])
   }
 
   const styleElem = createElement('style')
@@ -135,6 +136,10 @@ export const renderToImage = (dataURI: string): Promise<HTMLImageElement> => {
     img.src = dataURI
 
     img.onload = () => resolve(img)
+    /**
+     * Resolve in anyway
+     */
+    img.onerror = () => resolve(img)
   })
 }
 

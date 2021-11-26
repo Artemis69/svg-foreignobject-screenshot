@@ -52,10 +52,7 @@ test('getImageUrlsFromHtml', () => {
     ['https://example.com/concave.jpg']
   )
 
-  assert.equal(
-    getImageUrlsFromHtml(`<img src="data:image/svg+xml,..." />`),
-    []
-  )
+  assert.equal(getImageUrlsFromHtml(`<img src="data:image/svg+xml,..." />`), [])
   assert.equal(
     getImageUrlsFromHtml(`
       <svg>
