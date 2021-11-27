@@ -11,14 +11,6 @@ const createElement = <K extends keyof HTMLElementTagNameMap>(
 
 const serialize = (node: Node) => new XMLSerializer().serializeToString(node)
 
-const base64encode = (str: string): string => {
-  // https://stackoverflow.com/a/57459650/14295730
-  const encode = encodeURIComponent(str).replace(/%([a-f0-9]{2})/gi, (m, $1) =>
-    String.fromCharCode(parseInt($1, 16))
-  )
-  return btoa(encode)
-}
-
 const binaryStringToBase64 = (binaryString: Blob): Promise<string> => {
   return new Promise(resolve => {
     const reader = new FileReader()
@@ -71,12 +63,13 @@ const getMultipleResourcesAsBase64 = (
 export const buildSvgDataURI = async (
   contentHtml: string,
   width: number,
-  height: number
+  height: number,
+  StyleSheets?: StyleSheetList
 ): Promise<string> => {
   let cssStyles = ''
   let urlsFoundInCss: string[] = []
 
-  const styleSheets = Array.from(document.styleSheets).filter(
+  const styleSheets = Array.from(StyleSheets ?? document.styleSheets).filter(
     styleSheet =>
       !styleSheet.href || styleSheet.href.startsWith(window.location.origin)
   )
@@ -124,7 +117,7 @@ export const buildSvgDataURI = async (
 
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'><g transform='translate(0, 0) rotate(0)'><foreignObject x='0' y='0' width='${width}' height='${height}'>${contentRootElemString}</foreignObject></g></svg>`
 
-  const dataURI = `data:image/svg+xml;base64,${base64encode(svg)}`
+  const dataURI = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
   return dataURI
 }

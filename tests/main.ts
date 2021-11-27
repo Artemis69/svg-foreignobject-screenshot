@@ -88,6 +88,7 @@ test('getUrlsFromCssString', () => {
   assert.equal(getUrlsFromCssString(`background: url(./grape.jpg)`), [
     './grape.jpg',
   ])
+  assert.equal(getUrlsFromCssString(`clip-path:url(#B)`), [])
 })
 
 test('descape', () => {

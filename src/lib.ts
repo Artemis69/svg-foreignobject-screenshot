@@ -15,7 +15,9 @@ export const getImageUrlsFromHtml = (html: string): string[] => {
 export const getUrlsFromCssString = (cssRuleString: string): string[] => {
   const urls = Array.from(cssRuleString.matchAll(/url\((.*?)\)/gi))
     .map(match => removeQuotes(descape(match[1])))
-    .filter(url => !url.startsWith('data:') && url !== '')
+    .filter(
+      url => !url.startsWith('data:') && url !== '' && !url.startsWith('#')
+    )
 
   return urls
 }
