@@ -3,9 +3,10 @@ import * as assert from 'uvu/assert'
 import {
   removeQuotes,
   getImageUrlsFromHtml,
-  getUrlsFromCssString,
+  getUrlsFromCss,
   descape,
-  shouldProxy,
+  isEmptyString,
+  isDataUrl,
 } from '../src/lib'
 
 test('removeQuotes', () => {
@@ -69,26 +70,18 @@ test('getImageUrlsFromHtml', () => {
   )
 })
 
-test('getUrlsFromCssString', () => {
-  assert.equal(
-    getUrlsFromCssString(`background: url('data:image/svg+xml,')`),
-    []
-  )
-  assert.equal(
-    getUrlsFromCssString(`background: url("data:image/svg+xml,")`),
-    []
-  )
-  assert.equal(getUrlsFromCssString(`background: url(data:image/svg+xml,)`), [])
-  assert.equal(getUrlsFromCssString(`background: url('./grape.jpg')`), [
+test('getUrlsFromCss', () => {
+  assert.equal(getUrlsFromCss(`background: url('data:image/svg+xml,')`), [])
+  assert.equal(getUrlsFromCss(`background: url("data:image/svg+xml,")`), [])
+  assert.equal(getUrlsFromCss(`background: url(data:image/svg+xml,)`), [])
+  assert.equal(getUrlsFromCss(`background: url('./grape.jpg')`), [
     './grape.jpg',
   ])
-  assert.equal(getUrlsFromCssString(`background: url("./grape.jpg")`), [
+  assert.equal(getUrlsFromCss(`background: url("./grape.jpg")`), [
     './grape.jpg',
   ])
-  assert.equal(getUrlsFromCssString(`background: url(./grape.jpg)`), [
-    './grape.jpg',
-  ])
-  assert.equal(getUrlsFromCssString(`clip-path:url(#B)`), [])
+  assert.equal(getUrlsFromCss(`background: url(./grape.jpg)`), ['./grape.jpg'])
+  assert.equal(getUrlsFromCss(`clip-path:url(#B)`), [])
 })
 
 test('descape', () => {
@@ -99,37 +92,13 @@ test('descape', () => {
   assert.is(descape('&gt;'), '>')
 })
 
-test('shouldProxy', () => {
-  assert.is(shouldProxy('//proxy-me.pls/image.jpg'), true)
-  assert.is(shouldProxy('//proxy-me.pls/image.jpeg'), true)
-  assert.is(shouldProxy('//proxy-me.pls/image.png'), true)
-  assert.is(shouldProxy('//proxy-me.pls/image.gif'), true)
-  assert.is(shouldProxy('//proxy-me.pls/image.tiff'), true)
-  assert.is(shouldProxy('//proxy-me.pls/image.webp'), true)
-  assert.is(shouldProxy('//proxy-me.pls/image.svg'), true)
-  assert.is(shouldProxy('//proxy-me.pls/image.avif'), true)
+test('isEmptyString', () => {
+  assert.is(isEmptyString(''), true)
+})
 
-  assert.is(shouldProxy('http://proxy-me.pls/image.jpg'), true)
-  assert.is(shouldProxy('http://proxy-me.pls/image.jpeg'), true)
-  assert.is(shouldProxy('http://proxy-me.pls/image.png'), true)
-  assert.is(shouldProxy('http://proxy-me.pls/image.gif'), true)
-  assert.is(shouldProxy('http://proxy-me.pls/image.tiff'), true)
-  assert.is(shouldProxy('http://proxy-me.pls/image.webp'), true)
-  assert.is(shouldProxy('http://proxy-me.pls/image.svg'), true)
-  assert.is(shouldProxy('http://proxy-me.pls/image.avif'), true)
-
-  assert.is(shouldProxy('https://proxy-me.pls/image.jpg'), true)
-  assert.is(shouldProxy('https://proxy-me.pls/image.jpeg'), true)
-  assert.is(shouldProxy('https://proxy-me.pls/image.png'), true)
-  assert.is(shouldProxy('https://proxy-me.pls/image.gif'), true)
-  assert.is(shouldProxy('https://proxy-me.pls/image.tiff'), true)
-  assert.is(shouldProxy('https://proxy-me.pls/image.webp'), true)
-  assert.is(shouldProxy('https://proxy-me.pls/image.svg'), true)
-  assert.is(shouldProxy('https://proxy-me.pls/image.avif'), true)
-
-  assert.is(shouldProxy('https://do-not-proxy-me.pls/horny.woff2'), false)
-  assert.is(shouldProxy('https://do-not-proxy-me.pls/horny.woff'), false)
-  assert.is(shouldProxy('https://do-not-proxy-me.pls/horny.ttf'), false)
+test('isDataUrl', () => {
+  assert.is(isDataUrl('data:image/svg+xml,<svg></svg>'), true)
+  assert.is(isDataUrl('#path'), true)
 })
 
 test.run()

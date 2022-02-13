@@ -2,14 +2,13 @@
 
 _Inspired by [aautar/svg-foreignobject-screenshot](https://github.com/aautar/svg-foreignobject-screenshot)_
 
-## Usage
+## Basic Usage
 
 ```ts
 import {
   buildSvgDataURI,
   renderToBase64Png,
-  renderToCanvas,
-  renderToImage,
+  fetcher,
 } from '@artemis69/svg-foreignobject-screenshot'
 
 const elementToScreenshot: HTMLDivElement = document.querySelector('#app')
@@ -18,7 +17,10 @@ const elementToScreenshot: HTMLDivElement = document.querySelector('#app')
   const dataURI = await buildSvgDataURI(
     elementToScreenshot.outerHTML,
     window.innerWidth,
-    window.innerHeight
+    window.innerHeight,
+    {
+      fetcher,
+    }
   )
   const base64png = await renderToBase64Png(dataURI)
 
@@ -26,24 +28,76 @@ const elementToScreenshot: HTMLDivElement = document.querySelector('#app')
   link.download = 'download.png'
   link.href = base64png
   link.click()
-  link.remove()
 })()
 ```
 
-## Examples
+## Advanced Usage
 
-[renderToImage example](https://stackblitz.com/edit/svg-foreignobject-screenshot-render-to-image?file=index.ts)
+```ts
+import type { Options } from '@artemis69/svg-foreignobject-screenshot'
+import {
+  buildSvgDataURI,
+  renderToBase64Png,
+} from '@artemis69/svg-foreignobject-screenshot'
 
-In that example we capture div and then display it's copy near it
+const elementToScreenshot: HTMLDivElement = document.querySelector('#app')
 
-[renderToCanvas example](https://stackblitz.com/edit/svg-foreignobject-screenshot-render-to-canvas?file=index.ts)
+/*
+ * Here we are using a custom fetcher.
+ * This function should return a promise that resolves data url.
+ */
+const fetcher: Options['fetcher'] = url => {
+  return new Promise(async resolve => {
+    try {
+      const response = await fetch(url)
 
-In that example we capture div but also add image over it and then display it's copy near it
+      const blob = await response.blob()
 
-[renderToBase64Png example](https://stackblitz.com/edit/svg-foreignobject-screenshot-render-to-base64-png?file=index.ts)
+      const reader = new FileReader()
 
-in that example we capture document.body and then download it as png file
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => resolve('')
 
-## Thanks
+      reader.readAsDataURL(blob)
+    } catch {
+      return resolve('')
+    }
+  })
+}
 
-Thanks to [Images.weserv.nl](https://images.weserv.nl/) for proxing images.
+/*
+ * Here we are using a filterer.
+ * Want to filter out some resources? Use this.
+ *
+ * In this example, we are excluding fonts.
+ */
+const filterer: Options['filterer'] = url => {
+  const extensions = ['.eot', '.ttf', '.otf', '.woff', '.woff2']
+
+  for (const extension of extensions) {
+    if (url.endsWith(extension)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+;(async () => {
+  const dataURI = await buildSvgDataURI(
+    elementToScreenshot.outerHTML,
+    window.innerWidth,
+    window.innerHeight,
+    {
+      fetcher,
+      filterer,
+    }
+  )
+  const base64png = await renderToBase64Png(dataURI)
+
+  const link = document.createElement('a')
+  link.download = 'download.png'
+  link.href = base64png
+  link.click()
+})()
+```

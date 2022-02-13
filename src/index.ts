@@ -1,9 +1,5 @@
-import {
-  descape,
-  getImageUrlsFromHtml,
-  getUrlsFromCssString,
-  shouldProxy,
-} from './lib'
+import { getImageUrlsFromHtml, getUrlsFromCss } from './lib'
+export { fetcher } from './fetcher'
 
 const createElement = <K extends keyof HTMLElementTagNameMap>(
   tagName: K
@@ -11,150 +7,122 @@ const createElement = <K extends keyof HTMLElementTagNameMap>(
 
 const serialize = (node: Node) => new XMLSerializer().serializeToString(node)
 
-const binaryStringToBase64 = (binaryString: Blob): Promise<string> => {
-  return new Promise(resolve => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.readAsDataURL(binaryString)
-  })
-}
+const useFetcher = async (resources: string[], fetcher: Options['fetcher']) => {
+  const results = [] as Array<[string, string]>
 
-const getResourceAsBase64 = async (url: string): Promise<[string, string]> => {
-  try {
-    const isProxied = shouldProxy(url)
-
-    const res = await fetch(
-      isProxied
-        ? 'https://images.weserv.nl/?encoding=base64&output=jpg&url=' +
-            encodeURIComponent(descape(url))
-        : descape(url)
-    )
-
-    /**
-     * https://images.weserv.nl/docs/format.html#base64-data-url
-     * images.weserv.nl has an option to encode the image data as base64
-     * which is much faster than converting it to base64 on the client side
-     */
-    if (isProxied) {
-      const text = await res.text()
-      return [url, text.startsWith('data:image') ? text : '']
-    }
-
-    const blob = await res.blob()
-
-    const base64encoded = (await binaryStringToBase64(blob)) || ''
-
-    return [url, base64encoded]
-  } catch {
-    return [url, '']
+  for (const resource of resources) {
+    const result = await fetcher(resource)
+    results.push([resource, result])
   }
+
+  return results
 }
 
-const getMultipleResourcesAsBase64 = (
-  urls: string[]
-): Promise<Array<[string, string]>> => {
-  const promises = []
-  for (const url of urls) {
-    promises.push(getResourceAsBase64(url))
-  }
-  return Promise.all(promises)
+export interface Options {
+  filterer?: (value: string, index: number, array: string[]) => boolean
+  fetcher: (url: string) => Promise<string>
 }
 
-export const buildSvgDataURI = async (
-  contentHtml: string,
+type BuildSvgDataURI = (
+  html: string,
   width: number,
   height: number,
-  StyleSheets?: StyleSheetList
-): Promise<string> => {
-  let cssStyles = ''
-  let urlsFoundInCss: string[] = []
+  options: Options
+) => Promise<string>
 
-  const styleSheets = Array.from(StyleSheets ?? document.styleSheets).filter(
+export const buildSvgDataURI: BuildSvgDataURI = async (
+  html,
+  width,
+  height,
+  options
+) => {
+  let css = ''
+
+  const styleSheets = Array.from(document.styleSheets).filter(
     styleSheet =>
       !styleSheet.href || styleSheet.href.startsWith(window.location.origin)
   )
 
   for (const styleSheet of styleSheets) {
     for (const { cssText } of styleSheet.cssRules) {
-      urlsFoundInCss.push(...getUrlsFromCssString(cssText))
-      cssStyles += cssText
+      css += cssText
     }
   }
 
-  const fetchedResourcesFromStylesheets = await getMultipleResourcesAsBase64(
-    urlsFoundInCss
-  )
+  /*
+   * Get all the resources from `url(...)` in the CSS
+   */
 
-  for (const resource of fetchedResourcesFromStylesheets) {
-    cssStyles = cssStyles.replaceAll(resource[0], resource[1])
+  let resources = getUrlsFromCss(css)
+
+  /*
+   * Get all the resources from `<img src="...">` and `<image href="...">` in the HTML
+   */
+
+  resources = resources.concat(getImageUrlsFromHtml(html))
+
+  /*
+   * Get all the resources from styles inlined in html (e.g. <div style="background: url(...)"></div>)
+   */
+
+  resources = resources.concat(getUrlsFromCss(html))
+
+  /*
+   * Filter out duplicates
+   */
+
+  let uniqueResources = Array.from(new Set(resources))
+
+  if (options.filterer) {
+    uniqueResources = uniqueResources.filter(options.filterer)
   }
 
-  const urlsFoundInHtml = getUrlsFromCssString(contentHtml)
+  const base64Resources = await useFetcher(uniqueResources, options.fetcher)
 
-  const fetchedResourcesFromHtml = await getMultipleResourcesAsBase64(
-    urlsFoundInHtml
-  )
-
-  for (const resource of fetchedResourcesFromHtml) {
-    contentHtml = contentHtml.replaceAll(resource[0], resource[1])
+  for (const [url, base64] of base64Resources) {
+    css = css.replace(new RegExp(url, 'g'), base64)
+    html = html.replace(new RegExp(url, 'g'), base64)
   }
 
-  const fetchedResources = await getMultipleResourcesAsBase64(
-    getImageUrlsFromHtml(contentHtml)
-  )
-  for (const resource of fetchedResources) {
-    contentHtml = contentHtml.replaceAll(resource[0], resource[1])
-  }
+  const style = createElement('style')
+  style.innerHTML = css
 
-  const styleElem = createElement('style')
-  styleElem.innerHTML = cssStyles
+  const contentRoot = createElement('div')
+  contentRoot.innerHTML = html
+  contentRoot.appendChild(style)
+  contentRoot.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml')
 
-  const contentRootElem = createElement('div')
-  contentRootElem.innerHTML = serialize(styleElem) + contentHtml
-  contentRootElem.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml')
+  const content = serialize(contentRoot)
 
-  const contentRootElemString = serialize(contentRootElem)
-
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'><g transform='translate(0, 0) rotate(0)'><foreignObject x='0' y='0' width='${width}' height='${height}'>${contentRootElemString}</foreignObject></g></svg>`
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'><g transform='translate(0, 0) rotate(0)'><foreignObject x='0' y='0' width='${width}' height='${height}'>${content}</foreignObject></g></svg>`
 
   const dataURI = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
   return dataURI
 }
 
-export const renderToImage = (dataURI: string): Promise<HTMLImageElement> => {
+export const renderToBase64Png = (dataURI: string): Promise<string> => {
   return new Promise(resolve => {
     const img = createElement('img')
 
+    const controller = () => {
+      const canvas = createElement('canvas')
+
+      canvas.width = img.width
+      canvas.height = img.height
+
+      const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+
+      ctx.drawImage(img, 0, 0, img.width, img.height)
+
+      const png = canvas.toDataURL('image/png')
+
+      resolve(png)
+    }
+
     img.src = dataURI
 
-    img.onload = () => resolve(img)
-    /**
-     * Resolve in anyway
-     */
-    img.onerror = () => resolve(img)
+    img.onload = controller
+    img.onerror = controller
   })
-}
-
-export const renderToCanvas = async (
-  dataURI: string
-): Promise<HTMLCanvasElement> => {
-  const img = await renderToImage(dataURI)
-
-  const canvas = createElement('canvas')
-
-  canvas.width = img.width
-  canvas.height = img.height
-
-  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
-
-  ctx.drawImage(img, 0, 0, img.width, img.height)
-
-  return canvas
-}
-
-export const renderToBase64Png = async (dataURI: string): Promise<string> => {
-  const canvas = await renderToCanvas(dataURI)
-
-  return canvas.toDataURL('image/png')
 }
