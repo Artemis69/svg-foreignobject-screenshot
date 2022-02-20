@@ -11,17 +11,16 @@ import {
   fetcher,
 } from '@artemis69/svg-foreignobject-screenshot'
 
-const elementToScreenshot: HTMLDivElement = document.querySelector('#app')
+// element you want to screenshot
+const target: HTMLDivElement = document.querySelector('#app')
 
 ;(async () => {
-  const dataURI = await buildSvgDataURI(
-    elementToScreenshot.outerHTML,
-    window.innerWidth,
-    window.innerHeight,
-    {
-      fetcher,
-    }
-  )
+  const dataURI = await buildSvgDataURI(target.outerHTML, {
+    width: target.offsetWidth,
+    height: target.offsetHeight,
+    fetcher,
+  })
+
   const base64png = await renderToBase64Png(dataURI)
 
   const link = document.createElement('a')
@@ -39,8 +38,6 @@ import {
   buildSvgDataURI,
   renderToBase64Png,
 } from '@artemis69/svg-foreignobject-screenshot'
-
-const elementToScreenshot: HTMLDivElement = document.querySelector('#app')
 
 /*
  * Here we are using a custom fetcher.
@@ -84,15 +81,13 @@ const filterer: Options['filterer'] = url => {
 }
 
 ;(async () => {
-  const dataURI = await buildSvgDataURI(
-    elementToScreenshot.outerHTML,
-    window.innerWidth,
-    window.innerHeight,
-    {
-      fetcher,
-      filterer,
-    }
-  )
+  const dataURI = await buildSvgDataURI(target.outerHTML, {
+    width: target.offsetWidth,
+    height: target.offsetHeight,
+    fetcher,
+    filterer,
+  })
+
   const base64png = await renderToBase64Png(dataURI)
 
   const link = document.createElement('a')
@@ -100,4 +95,35 @@ const filterer: Options['filterer'] = url => {
   link.href = base64png
   link.click()
 })()
+```
+
+## Super-Duper Advanced Usage
+
+```ts
+import postcss from 'postcss'
+import autoprefixer, { Options } from 'autoprefixer'
+
+const autoprefixerOptions: Options = {
+  overrideBrowserslist: ['>0.1%', 'last 4 versions', 'not dead'],
+}
+
+const processor = postcss([autoprefixer(autoprefixerOptions)])
+
+const autoprefix = (value: string) => {
+  return processor.process(value).css
+}
+
+const dataURI = await buildSvgDataURI(target.outerHTML, {
+  width: target.offsetWidth,
+  height: target.offsetHeight,
+  fetcher,
+  filterer,
+  // modify css before rendering
+  css: autoprefix,
+  // modify html before rendering
+  html: (value: string) => {
+    console.log(html)
+    return html
+  },
+})
 ```

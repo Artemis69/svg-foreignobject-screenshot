@@ -1,4 +1,4 @@
-import type { Options } from './index'
+import type { Options } from './types'
 
 export const fetcher: Options['fetcher'] = url => {
   return new Promise(async resolve => {

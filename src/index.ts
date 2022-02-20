@@ -1,4 +1,5 @@
 import { getImageUrlsFromHtml, getUrlsFromCss } from './lib'
+import { Options, HookName, HookParameter, BuildSvgDataURI } from './types'
 export { fetcher } from './fetcher'
 
 const createElement = <K extends keyof HTMLElementTagNameMap>(
@@ -18,25 +19,10 @@ const useFetcher = async (resources: string[], fetcher: Options['fetcher']) => {
   return results
 }
 
-export interface Options {
-  filterer?: (value: string, index: number, array: string[]) => boolean
-  fetcher: (url: string) => Promise<string>
-}
-
-type BuildSvgDataURI = (
-  html: string,
-  width: number,
-  height: number,
-  options: Options
-) => Promise<string>
-
-export const buildSvgDataURI: BuildSvgDataURI = async (
-  html,
-  width,
-  height,
-  options
-) => {
+export const buildSvgDataURI: BuildSvgDataURI = async (html, options) => {
   let css = ''
+
+  let { width, height } = options
 
   const styleSheets = Array.from(document.styleSheets).filter(
     styleSheet =>
@@ -84,6 +70,22 @@ export const buildSvgDataURI: BuildSvgDataURI = async (
     html = html.replace(new RegExp(url, 'g'), base64)
   }
 
+  const hook = async <T extends keyof HookName, K extends HookParameter<T>>(
+    name: T,
+    changer: K
+  ) => {
+    let fn = options[name]
+
+    if (typeof fn === 'function') {
+      return (await fn(changer)) || changer
+    }
+
+    return changer
+  }
+
+  css = await hook('css', css)
+  html = await hook('html', html)
+
   const style = createElement('style')
   style.innerHTML = css
 
@@ -115,7 +117,7 @@ export const renderToBase64Png = (dataURI: string): Promise<string> => {
 
       ctx.drawImage(img, 0, 0, img.width, img.height)
 
-      const png = canvas.toDataURL('image/png')
+      const png = canvas.toDataURL('image/png', 1.0)
 
       resolve(png)
     }
