@@ -101,4 +101,8 @@ test('isDataUrl', () => {
   assert.is(isDataUrl('#path'), true)
 })
 
+test('descape and removeQuotes combined', () => {
+  assert.is(removeQuotes(descape('&quot;stars.jpg&quot;')), 'stars.jpg')
+})
+
 test.run()

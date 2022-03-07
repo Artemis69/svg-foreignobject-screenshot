@@ -1,4 +1,4 @@
-import { getImageUrlsFromHtml, getUrlsFromCss, descape } from './lib'
+import { getImageUrlsFromHtml, getUrlsFromCss, descape, removeQuotes } from './lib'
 import { Options, HookName, HookParameter, BuildSvgDataURI } from './types'
 export { fetcher } from './fetcher'
 
@@ -12,7 +12,7 @@ const useFetcher = async (resources: string[], fetcher: Options['fetcher']) => {
   const results = [] as Array<[string, string]>
 
   for (const resource of resources) {
-    const result = await fetcher(descape(resource))
+    const result = await fetcher(removeQuotes(descape(resource)))
     results.push([resource, result])
   }
 
