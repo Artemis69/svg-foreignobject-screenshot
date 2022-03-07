@@ -1,4 +1,4 @@
-import { getImageUrlsFromHtml, getUrlsFromCss } from './lib'
+import { getImageUrlsFromHtml, getUrlsFromCss, descape } from './lib'
 import { Options, HookName, HookParameter, BuildSvgDataURI } from './types'
 export { fetcher } from './fetcher'
 
@@ -12,7 +12,7 @@ const useFetcher = async (resources: string[], fetcher: Options['fetcher']) => {
   const results = [] as Array<[string, string]>
 
   for (const resource of resources) {
-    const result = await fetcher(resource)
+    const result = await fetcher(descape(resource))
     results.push([resource, result])
   }
 
@@ -66,8 +66,8 @@ export const buildSvgDataURI: BuildSvgDataURI = async (html, options) => {
   const base64Resources = await useFetcher(uniqueResources, options.fetcher)
 
   for (const [url, base64] of base64Resources) {
-    css = css.replace(new RegExp(url, 'g'), base64)
-    html = html.replace(new RegExp(url, 'g'), base64)
+    css = css.replaceAll(url, base64)
+    html = html.replaceAll(url, base64)
   }
 
   const hook = async <T extends keyof HookName, K extends HookParameter<T>>(
@@ -128,3 +128,5 @@ export const renderToBase64Png = (dataURI: string): Promise<string> => {
     img.onerror = controller
   })
 }
+
+export { Options }

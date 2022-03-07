@@ -3,7 +3,7 @@
   "description": "Use SVG foreignObject to render images of HTML content",
   "author": "Artem Schukin",
   "license": "MIT",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "module",
   "homepage": "https://github.com/Artemis69/svg-foreignobject-screenshot",
   "repository": {

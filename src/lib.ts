@@ -29,7 +29,7 @@ export const getUrlsFromCss = (cssRuleString: string): string[] => {
   const regex = /url\((.*?)\)/gi
 
   const urls = Array.from(cssRuleString.matchAll(regex))
-    .map(match => removeQuotes(descape(match[1])))
+    .map(match => removeQuotes(match[1]))
     .filter(filterer)
 
   return urls
