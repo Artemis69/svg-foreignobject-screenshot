@@ -1,4 +1,9 @@
-import { getImageUrlsFromHtml, getUrlsFromCss, descape, removeQuotes } from './lib'
+import {
+  getImageUrlsFromHtml,
+  getUrlsFromCss,
+  descape,
+  removeQuotes,
+} from './lib'
 import { Options, HookName, HookParameter, BuildSvgDataURI } from './types'
 export { fetcher } from './fetcher'
 
@@ -11,10 +16,12 @@ const serialize = (node: Node) => new XMLSerializer().serializeToString(node)
 const useFetcher = async (resources: string[], fetcher: Options['fetcher']) => {
   const results = [] as Array<[string, string]>
 
-  for (const resource of resources) {
+  const promises = resources.map(async resource => {
     const result = await fetcher(removeQuotes(descape(resource)))
     results.push([resource, result])
-  }
+  })
+
+  await Promise.all(promises)
 
   return results
 }
