@@ -31,14 +31,11 @@ export const buildSvgDataURI: BuildSvgDataURI = async (html, options) => {
 
   let { width, height } = options
 
-  const styleSheets = Array.from(document.styleSheets).filter(
-    styleSheet =>
-      !styleSheet.href || styleSheet.href.startsWith(window.location.origin)
-  )
-
-  for (const styleSheet of styleSheets) {
-    for (const { cssText } of styleSheet.cssRules) {
-      css += cssText
+  for (const styleSheet of document.styleSheets) {
+    if (!styleSheet.href || styleSheet.href.startsWith(window.location.origin)) {
+      for (const { cssText } of styleSheet.cssRules) {
+        css += cssText
+      }
     }
   }
 
@@ -72,11 +69,6 @@ export const buildSvgDataURI: BuildSvgDataURI = async (html, options) => {
 
   const base64Resources = await useFetcher(uniqueResources, options.fetcher)
 
-  for (const [url, base64] of base64Resources) {
-    css = css.replaceAll(url, base64)
-    html = html.replaceAll(url, base64)
-  }
-
   const hook = async <T extends keyof HookName, K extends HookParameter<T>>(
     name: T,
     changer: K
@@ -90,20 +82,20 @@ export const buildSvgDataURI: BuildSvgDataURI = async (html, options) => {
     return changer
   }
 
-  css = await hook('css', css)
-  html = await hook('html', html)
-
-  const style = createElement('style')
-  style.innerHTML = css
+  options.css && (css = await hook('css', css))
+  options.html && (html = await hook('html', html))
 
   const contentRoot = createElement('div')
   contentRoot.innerHTML = html
-  contentRoot.appendChild(style)
-  contentRoot.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml')
 
-  const content = serialize(contentRoot)
+  let content = serialize(contentRoot)
 
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'><g transform='translate(0, 0) rotate(0)'><foreignObject x='0' y='0' width='${width}' height='${height}'>${content}</foreignObject></g></svg>`
+  for (const [url, base64] of base64Resources) {
+    css = css.replaceAll(url, base64)
+    content = content.replaceAll(url, base64)
+  }
+
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'><foreignObject x='0' y='0' width='${width}' height='${height}'><style>${css}</style>${content}</foreignObject></svg>`
 
   const dataURI = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
