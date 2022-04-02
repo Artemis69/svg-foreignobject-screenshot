@@ -4,7 +4,7 @@ import {
   descape,
   removeQuotes,
 } from './lib'
-import { Options, HookName, HookParameter, BuildSvgDataURI } from './types'
+import { Options, BuildSvgDataURI } from './types'
 export { fetcher } from './fetcher'
 
 const createElement = <K extends keyof HTMLElementTagNameMap>(
@@ -69,21 +69,11 @@ export const buildSvgDataURI: BuildSvgDataURI = async (html, options) => {
 
   const base64Resources = await useFetcher(uniqueResources, options.fetcher)
 
-  const hook = async <T extends keyof HookName, K extends HookParameter<T>>(
-    name: T,
-    changer: K
-  ) => {
-    let fn = options[name]
+  if (typeof options.css === 'function') {
+    let result = await options.css(css);
 
-    if (typeof fn === 'function') {
-      return (await fn(changer)) || changer
-    }
-
-    return changer
+    if (result) css = result;
   }
-
-  options.css && (css = await hook('css', css))
-  options.html && (html = await hook('html', html))
 
   const contentRoot = createElement('div')
   contentRoot.innerHTML = html

@@ -120,10 +120,5 @@ const dataURI = await buildSvgDataURI(target.outerHTML, {
   filterer,
   // modify css before rendering
   css: autoprefix,
-  // modify html before rendering
-  html: (value: string) => {
-    console.log(html)
-    return html
-  },
 })
 ```
