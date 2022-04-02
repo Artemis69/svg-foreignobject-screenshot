@@ -15,7 +15,7 @@ import {
 const target: HTMLDivElement = document.querySelector('#app')
 
 ;(async () => {
-  const dataURI = await buildSvgDataURI(target.outerHTML, {
+  const dataURI = await buildSvgDataURI(target, {
     width: target.offsetWidth,
     height: target.offsetHeight,
     fetcher,
@@ -81,7 +81,7 @@ const filterer: Options['filterer'] = url => {
 }
 
 ;(async () => {
-  const dataURI = await buildSvgDataURI(target.outerHTML, {
+  const dataURI = await buildSvgDataURI(target, {
     width: target.offsetWidth,
     height: target.offsetHeight,
     fetcher,
@@ -113,7 +113,7 @@ const autoprefix = (value: string) => {
   return processor.process(value).css
 }
 
-const dataURI = await buildSvgDataURI(target.outerHTML, {
+const dataURI = await buildSvgDataURI(target, {
   width: target.offsetWidth,
   height: target.offsetHeight,
   fetcher,
