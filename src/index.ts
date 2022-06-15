@@ -44,7 +44,7 @@ export const buildSvgDataURI: BuildSvgDataURI = async (node, options) => {
     if (result) css = result
   }
 
-  let content = serialize(node)
+  let content = `<style>${css}</style>${serialize(node)}`
 
   if (options.fetcher) {
     /*
@@ -74,8 +74,6 @@ export const buildSvgDataURI: BuildSvgDataURI = async (node, options) => {
     }
 
     const base64Resources = await useFetcher(uniqueResources, options.fetcher)
-
-    content = `<style>${css}</style>${content}`
 
     for (const [url, base64] of base64Resources) {
       content = content.replaceAll(url, base64)
