@@ -1,4 +1,5 @@
 export type Thenable<T> = Promise<T> | T
+export type Hook = (value: string) => Thenable<string | void>
 export type BuildSvgDataURI = (
   html: HTMLElement,
   options: Options
@@ -7,7 +8,7 @@ export type BuildSvgDataURI = (
 export interface Options {
   filterer?: (value: string, index?: number, array?: string[]) => boolean
   fetcher?: (url: string) => Promise<string>
-  css?: (value: string) => Thenable<string | void>
+  css?: Hook
   width: number
   height: number
 }

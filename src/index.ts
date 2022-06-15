@@ -31,11 +31,8 @@ export const buildSvgDataURI: BuildSvgDataURI = async (node, options) => {
   let { width, height } = options
 
   for (const styleSheet of document.styleSheets) {
-    if (
-      !styleSheet.href ||
-      styleSheet.href.startsWith(window.location.origin)
-    ) {
-      for (const { cssText } of styleSheet.cssRules) {
+    if (!styleSheet.href || styleSheet.href.startsWith(location.origin)) {
+      for (let { cssText } of styleSheet.cssRules) {
         css += cssText
       }
     }
@@ -114,7 +111,7 @@ export const renderToBase64Png = (dataURI: string): Promise<string> => {
     img.src = dataURI
 
     img.onload = controller
-    img.onerror = controller
+    img.onerror = () => resolve('')
   })
 }
 
