@@ -78,13 +78,14 @@ export const buildSvgDataURI: BuildSvgDataURI = async (node, options) => {
 
     const base64Resources = await useFetcher(uniqueResources, options.fetcher)
 
+    content = `<style>${css}</style>${content}`
+
     for (const [url, base64] of base64Resources) {
-      css = css.replaceAll(url, base64)
       content = content.replaceAll(url, base64)
     }
   }
 
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'><foreignObject x='0' y='0' width='${width}' height='${height}'><style>${css}</style>${content}</foreignObject></svg>`
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'><foreignObject x='0' y='0' width='${width}' height='${height}'>${content}</foreignObject></svg>`
 
   const dataURI = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
