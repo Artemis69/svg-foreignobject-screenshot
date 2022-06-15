@@ -1,7 +1,7 @@
 export type Thenable<T> = Promise<T> | T
 export type Hook = (value: string) => Thenable<string | void>
 export type BuildSvgDataURI = (
-  html: HTMLElement,
+  html: string | Node,
   options: Options
 ) => Promise<string>
 

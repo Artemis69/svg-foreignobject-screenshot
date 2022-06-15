@@ -44,7 +44,9 @@ export const buildSvgDataURI: BuildSvgDataURI = async (node, options) => {
     if (result) css = result
   }
 
-  let content = `<style>${css}</style>${serialize(node)}`
+  let content = `<style>${css}</style>${
+    typeof node === 'string' ? node : serialize(node)
+  }`
 
   if (options.fetcher) {
     /*
