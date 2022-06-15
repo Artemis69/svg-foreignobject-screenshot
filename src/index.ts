@@ -59,15 +59,13 @@ export const buildSvgDataURI: BuildSvgDataURI = async (node, options) => {
     /*
      * Get all the resources from `<img src="...">` and `<image href="...">` in the HTML
      */
-
-    resources = resources.concat(getImageUrlsFromHtml(content))
+    resources.push(...getImageUrlsFromHtml(content))
 
     /*
      * Get all the resources from styles inlined in html (e.g. <div style="background: url(...)"></div>)
      */
 
-    resources = resources.concat(getUrlsFromCss(content))
-
+    resources.push(...getUrlsFromCss(content))
     /*
      * Filter out duplicates
      */
