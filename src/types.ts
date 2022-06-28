@@ -1,3 +1,4 @@
+export type NoUndefined<T> = T extends undefined ? never : T;
 export type Thenable<T> = Promise<T> | T
 export type Hook = (value: string) => Thenable<string | void>
 export type BuildSvgDataURI = (
@@ -12,3 +13,4 @@ export interface Options {
   width: number
   height: number
 }
+

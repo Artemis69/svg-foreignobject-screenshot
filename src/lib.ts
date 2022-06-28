@@ -16,24 +16,26 @@ export const isEmptyString = (url: string) => url === ''
 
 const filterer = (url: string) => !isDataUrl(url) && !isEmptyString(url)
 
+const take = (str: string, regex: RegExp, i: number) => {
+  const items = Array.from(str.matchAll(regex))
+
+  return items.map(match => removeQuotes(match[i])).filter(filterer)
+}
+
 export const getImageUrlsFromHtml = (html: string): string[] => {
   const regex = /<(?:img|image).*?(?:href|src)=(["|'])(.*?)(\1)/gm
 
-  const urls = Array.from(html.matchAll(regex))
-    .map(match => match[2])
-    .filter(filterer)
-  return urls
+  return take(html, regex, 2)
 }
 
 export const getUrlsFromCss = (cssRuleString: string): string[] => {
   const regex = /url\((.*?)\)/gi
 
-  const urls = Array.from(cssRuleString.matchAll(regex))
-    .map(match => removeQuotes(match[1]))
-    .filter(filterer)
-
-  return urls
+  return take(cssRuleString, regex, 1)
 }
 
-export const removeQuotes = (str: string) =>
-  str.replace(/^("|').*?(\1)$/gm, match => match.slice(1, -1))
+export const removeQuotes = (str: string) => {
+  const regex = /^("|').*?(\1)$/m
+
+  return regex.test(str) ? str.slice(1, -1) : str
+}

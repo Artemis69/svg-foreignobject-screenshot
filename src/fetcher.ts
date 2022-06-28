@@ -1,6 +1,6 @@
-import type { Options } from './types'
+import type { Options, NoUndefined } from './types'
 
-export const fetcher: Options['fetcher'] = url => {
+export const fetcher: NoUndefined<Options['fetcher']> = url => {
   return new Promise(async resolve => {
     try {
       const response = await fetch(url)

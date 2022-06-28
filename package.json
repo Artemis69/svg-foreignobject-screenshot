@@ -33,7 +33,7 @@
   "scripts": {
     "format": "prettier --write .",
     "build": "tsup",
-    "test": "tsm tests/main.ts && editorconfig-checker --exclude '.git|node_modules'"
+    "test": "tsm --no-warnings tests/main.ts && editorconfig-checker --exclude '.git|node_modules'"
   },
   "keywords": [
     "svg",
