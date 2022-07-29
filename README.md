@@ -1,6 +1,6 @@
 # svg-foreignobject-screenshot
 
-_Inspired by [aautar/svg-foreignobject-screenshot](https://github.com/aautar/svg-foreignobject-screenshot)_
+Look at it in action: https://sfos.pages.dev/try-it-out
 
 ## Basic Usage
 
