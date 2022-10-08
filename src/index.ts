@@ -48,25 +48,19 @@ export const buildSvgDataURI: BuildSvgDataURI = async (node, options) => {
 
   if (options.fetcher) {
     /*
-     * Get all the resources from `url(...)` in the CSS
-     */
-
-    let resources = getUrlsFromCss(css)
-
-    /*
      * Get all the resources from `<img src="...">` and `<image href="...">` in the HTML
      */
-    resources.push(...getImageUrlsFromHtml(content))
+    let resources = getImageUrlsFromHtml(content)
 
     /*
      * Get all the resources from styles inlined in html (e.g. <div style="background: url(...)"></div>)
+     * And also from `url(...)` in the CSS
      */
-
     resources.push(...getUrlsFromCss(content))
+
     /*
      * Filter out duplicates
      */
-
     let uniqueResources = Array.from(new Set(resources))
 
     if (options.filterer) {
